@@ -18,7 +18,11 @@ namespace vm
         explicit Lexer(
             std::unique_ptr<std::string_view> _source
         ) noexcept : m_source(std::move(_source))
-        {}
+        {
+            tokens.reserve(
+                (*_source).length()
+            );
+        }
 
         std::vector<Token> tokens;
         void tokenise() noexcept;

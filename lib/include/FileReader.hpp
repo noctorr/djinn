@@ -24,4 +24,9 @@ namespace ftl
 
         return content;
     }
+
+    struct FileMapContent final
+    {
+        
+    };
 }

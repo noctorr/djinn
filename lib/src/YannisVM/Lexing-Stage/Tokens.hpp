@@ -54,7 +54,6 @@ namespace vm
         /// @endcond
 
         // statement declare
-
         if_,
         for_,
         while_,
@@ -66,7 +65,11 @@ namespace vm
         sizeof_,
         alignof_,
 
+        // grammar
+        const_,
+
         // file data
+        semicolon,
         eof
     };
 
