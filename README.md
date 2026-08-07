@@ -1,6 +1,6 @@
 # ***__ DJINN ENGINE __***
 
-<img src=".github/CPP.png" width="300" alt="CPP">
+<img src=".github/CPP.png" width="400" alt="CPP">
 <img src=".github/Vulkan.png" width="500" alt="Vulkan">
 
 # Introduction
