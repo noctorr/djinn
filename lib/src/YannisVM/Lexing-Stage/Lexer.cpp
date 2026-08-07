@@ -36,3 +36,7 @@ void vm::Lexer::tokenise () noexcept
     }
 }
 
+vm::Token vm::Lexer::numberise () noexcept
+{
+    
+}
