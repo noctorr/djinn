@@ -2,13 +2,14 @@
 
 #include <string>
 #include <algorithm>
+#include <unordered_map>
 
 void vm::Lexer::tokenise () noexcept
 {
     size_t start { 0uz };
 
     while (
-        m_current < (*m_source).length() 
+        m_current < m_length
     )
     {
         char current = (*m_source)[m_current];
@@ -36,7 +37,52 @@ void vm::Lexer::tokenise () noexcept
     }
 }
 
+std::unordered_map<
+    char,
+    vm::TokenType
+> ttLiteralsHashMap = {
+    { 'c', vm::TokenType::eight_bit },
+    { 's', vm::TokenType::sixteen_bit },
+    { 'i', vm::TokenType::thirty_two_bit },
+    { 'l', vm::TokenType::sixty_four_bit },
+    { 'f', vm::TokenType::single_precision },
+    { 'd', vm::TokenType::double_precision },
+    { 'b', vm::TokenType::triple_precision }
+};
+
 vm::Token vm::Lexer::numberise () noexcept
 {
-    
+    std::string value;
+    value.push_back((*m_source)[m_current]);
+    m_current++;
+
+    while (
+        m_current < m_length
+    )
+    {
+        if (
+            std::isdigit(
+                (*m_source)[m_current]
+            )
+        )
+        {
+            value.push_back((*m_source)[m_current]);
+        } else
+        {
+            break;
+        }
+    }
+
+    vm::TokenType token = vm::TokenType::double_precision; // default
+
+    std::unordered_map<char, vm::TokenType>::iterator val = ttLiteralsHashMap.find((*m_source)[m_current]);
+
+    if (
+        val != ttLiteralsHashMap.end()
+    )
+    {
+        token = val->second;
+    }
+
+    return vm::Token(token, value);
 }

@@ -55,9 +55,6 @@ struct application final
 
     VkSwapchainKHR m_swapChain { VK_NULL_HANDLE };
 
-    std::vector<VkImage> m_swapChainImages;
-    std::vector<VkImageView> m_swapChainImageViews;
-    std::vector<VkSemaphore> m_renderCompleteSemaphores;
 
     bool m_requireSwapChainRecreate { false };
 

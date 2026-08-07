@@ -80,8 +80,8 @@ namespace vm
 
         explicit Token(
             TokenType _tt,
-            std::unique_ptr<std::string_view> _val
-        ) : tokenType(_tt), value(std::move(_val))
+            std::string_view _val
+        ) : tokenType(_tt), value(std::move(std::make_unique<std::string_view>(_val)))
         {}
     };
 }

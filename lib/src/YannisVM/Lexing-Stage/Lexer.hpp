@@ -15,13 +15,16 @@ namespace vm
         #pragma clang diagnostic pop
         #endif
 
+        size_t m_length;
+
         public:
         explicit Lexer(
             std::unique_ptr<std::string_view> _source
         ) noexcept : m_source(std::move(_source))
         {
+            m_length = (*_source).length();
             tokens.reserve(
-                (*_source).length()
+                m_length
             );
         }
 
