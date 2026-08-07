@@ -75,7 +75,7 @@ vm::Token vm::Lexer::numberise () noexcept
 
     vm::TokenType token = vm::TokenType::double_precision; // default
 
-    std::unordered_map<char, vm::TokenType>::iterator val = ttLiteralsHashMap.find((*m_source)[m_current]);
+    std::unordered_map<char, vm::TokenType>::const_iterator val = ttLiteralsHashMap.find((*m_source)[m_current]);
 
     if (
         val != ttLiteralsHashMap.end()
