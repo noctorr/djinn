@@ -1,16 +1,28 @@
 #pragma once
 
 #include "Tokens.hpp"
+#include <vector>
 
 namespace vm
 {
     class Lexer final
     {
-        std::string_view m_source;
+        std::unique_ptr<std::string_view> m_source;
+        #if defined(__clang__)
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wc++23-extensions"
         size_t m_counter { 0uz };
-        
-
+        #pragma clang diagnostic pop
+        #endif
         public:
-        explicit Lexer()
+        explicit Lexer(
+            std::unique_ptr<std::string_view> _source
+        ) noexcept : m_source(std::move(_source))
+        {}
+
+        std::vector<Token> tokenise() noexcept;
+        void numberise() noexcept;
+        void arrarise() noexcept;
+        void identifier() noexcept;
     };
 }
