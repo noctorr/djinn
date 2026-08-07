@@ -1,0 +1,28 @@
+# Normalise text files and preserve cross-platform line endings
+* text=auto
+
+# C/C++ source files
+*.c text eol=lf
+*.cpp text eol=lf
+*.cc text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+*.hh text eol=lf
+
+# Assembly and shader files
+*.frag text eol=lf
+*.vert text eol=lf
+*.glsl text eol=lf
+
+# Scripts and documentation
+*.sh text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.cmake text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

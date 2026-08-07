@@ -1,0 +1,44 @@
+# Build output
+/build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+Testing/
+
+# CMake generated files
+*.dir/
+
+# Compiled object files and libraries
+*.o
+*.obj
+*.lo
+*.slo
+*.lai
+*.la
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Debug and IDE
+*.pdb
+*.idb
+*.log
+*.user
+*.cache
+*.tmp
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
