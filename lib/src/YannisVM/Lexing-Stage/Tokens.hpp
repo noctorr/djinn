@@ -75,13 +75,13 @@ namespace vm
 
     struct Token final
     {
-        TokenType m_tokenType;
-        std::unique_ptr<std::string_view> m_value;
+        TokenType tokenType;
+        std::unique_ptr<std::string_view> value;
 
         explicit Token(
             TokenType _tt,
             std::unique_ptr<std::string_view> _val
-        ) : m_tokenType(_tt), m_value(std::move(_val))
+        ) : tokenType(_tt), value(std::move(_val))
         {}
     };
 }

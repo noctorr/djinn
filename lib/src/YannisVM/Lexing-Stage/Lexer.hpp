@@ -14,6 +14,7 @@ namespace vm
         size_t m_current { 0uz };
         #pragma clang diagnostic pop
         #endif
+
         public:
         explicit Lexer(
             std::unique_ptr<std::string_view> _source
