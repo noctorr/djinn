@@ -16,6 +16,7 @@ namespace vm
         #endif
 
         size_t m_length;
+        bool m_running { false };
 
         public:
         explicit Lexer(
@@ -29,11 +30,12 @@ namespace vm
         }
 
         std::vector<Token> tokens;
-        void tokenise() noexcept;
+        bool tokenise() noexcept;
 
         private:
         Token numberise() noexcept;
         Token vectorise() noexcept;
         Token identifier() noexcept;
+        Token operatorise() noexcept;
     };
 }

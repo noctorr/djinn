@@ -20,6 +20,16 @@ namespace vm
         close_braces, // }
         open_square, // [
         close_square, // ]
+        // &
+        ampersan_ma,
+
+        // bitwise &
+        ampersan_and,
+
+        // bitwise ops
+        leftshift, // <<
+        rightshift, // >>
+        bit_or, // |
 
         // logical operations
         equal_sign, // =
@@ -31,6 +41,8 @@ namespace vm
         right_greater, // <
         left_greater_or_equal, // =>
         right_greater_or_equal, // =<
+        _and, // and
+        _or, // or
 
         // types
 
@@ -54,19 +66,27 @@ namespace vm
         /// @endcond
 
         // statement declare
+        function,
         if_,
         for_,
         while_,
         switch_,
         case_,
         default_,
+        varname,
+
+        // statement add-ons
+        elif,
+        else_,
 
         // keywords
         sizeof_,
         alignof_,
+        std_,
 
         // grammar
         const_,
+        let,
 
         // file data
         semicolon,
