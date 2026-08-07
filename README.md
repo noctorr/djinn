@@ -1,7 +1,7 @@
 # ***__ DJINN ENGINE __***
 
-![CPP Logo](.github/CPP.png)
-![Vulkan Logo](.github/Vulkan.png)
+<img src=".github/CPP.png" width="300" alt="CPP">
+<img src=".github/Vulkan.png" width="500" alt="Vulkan">
 
 # Introduction
 Djinn is a Game Engine in **W.I.P** where it trys to be as Begineer-Friendly as possible as a way for people to understand
