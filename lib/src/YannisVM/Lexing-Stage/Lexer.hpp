@@ -11,7 +11,7 @@ namespace vm
         #if defined(__clang__)
         #pragma clang diagnostic push
         #pragma clang diagnostic ignored "-Wc++23-extensions"
-        size_t m_counter { 0uz };
+        size_t m_current { 0uz };
         #pragma clang diagnostic pop
         #endif
         public:
@@ -20,9 +20,12 @@ namespace vm
         ) noexcept : m_source(std::move(_source))
         {}
 
-        std::vector<Token> tokenise() noexcept;
-        void numberise() noexcept;
-        void arrarise() noexcept;
-        void identifier() noexcept;
+        std::vector<Token> tokens;
+        void tokenise() noexcept;
+
+        private:
+        Token numberise() noexcept;
+        Token vectorise() noexcept;
+        Token identifier() noexcept;
     };
 }
