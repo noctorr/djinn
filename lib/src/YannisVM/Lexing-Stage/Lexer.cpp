@@ -33,6 +33,11 @@ bool vm::Lexer::tokenise () noexcept
             tokens.emplace_back(
                 vectorise()
             );
+        } else if ( current == ';' )
+        {
+            tokens.emplace_back(
+                vm::Token(vm::TokenType::semicolon, ";")
+            );
         } else
         {
             tokens.emplace_back(
@@ -228,7 +233,7 @@ vm::Token vm::Lexer::operatorise ( ) noexcept
         } else
         {
             m_running = false;
-            return vm::Token(vm::TokenType::eof, "");
+            return vm::Token(vm::TokenType::error, "");
         }
     }
     #pragma clang diagnostic pop

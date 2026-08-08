@@ -90,6 +90,7 @@ namespace vm
 
         // file data
         semicolon,
+        error,
         eof
     };
 
