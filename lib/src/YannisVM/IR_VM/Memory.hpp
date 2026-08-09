@@ -10,28 +10,37 @@ requires ( std::is_same_v< typename std::remove_cv<_IndexType>::type,
     _IndexType> &&
     std::is_same_v< typename std::remove_cv<_ValueType>::type,
     _ValueType> )
-class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")]] YannisHashMap final
+class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")]] YannisStackHashMap final
 {
+    #if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc++23-extensions"
     _IndexType* m_indexVector { nullptr };
     _ValueType* m_valueVector { nullptr };
+    std::size_t m_capacity, m_size, m_offset { 0uz };
+
     public:
-    explicit YannisHashMap(
+    explicit YannisStackHashMap(
         std::initializer_list<
             _IndexType
         > _indexList,
         std::initializer_list<
             _ValueType
         > _valueList
-    ) {
-        m_indexVector = new _IndexType[_indexList.size()];
-        m_valueVector = new _ValueType[_valueList.size()];
+    ) noexcept {
+        const std::size_t indexSize = _indexList.size();
+        const std::size_t valueSize = _valueList.size();
+        const std::size_t trueSize = (indexSize > valueSize) ? indexSize : valueSize;
+        m_size = trueSize;
+        m_capacity = trueSize + 5uz;
+        m_offset = trueSize - 1uz;
+
+        m_indexVector = new _IndexType[m_capacity];
+        m_valueVector = new _ValueType[m_capacity];
 
         /// i looked at the initializer_list source code and a const_iterator is just a 'const type *' makes sense since its suppose to do its job at compile-time
         /// was thinking it was a struct
 
-        #if defined(__clang__)
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wc++23-extensions"
         std::size_t index { 0uz };
         for (
             typename std::initializer_list<_IndexType>::const_iterator value = _indexList.begin();
@@ -42,8 +51,6 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
         }
 
         index = 0uz;
-        #pragma clang diagnostic pop
-        #endif
 
         for (
             typename std::initializer_list<_ValueType>::const_iterator value = _valueList.begin();
@@ -54,28 +61,91 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
         }
     }
 
-    YannisHashMap(
-        const YannisHashMap&
-    ) = delete;
+    explicit YannisStackHashMap(
+        _IndexType index,
+        _ValueType value
+    ) noexcept {
+        m_capacity = 5uz;
+        m_size = 1uz;
 
-    YannisHashMap(
-        YannisHashMap&&
-    ) = delete;
+        m_indexVector = new _IndexType[m_capacity];
+        m_valueVector = new _ValueType[m_capacity];
 
-    ~YannisHashMap()
+        m_indexVector[0] = index;
+        m_valueVector[0] = value;
+    }
+
+    YannisStackHashMap(
+        const YannisStackHashMap&
+    ) noexcept = delete;
+
+    YannisStackHashMap(
+        const YannisStackHashMap&&
+    ) noexcept = delete;
+
+    ~YannisStackHashMap() noexcept
     {
         delete[] m_indexVector;
         delete[] m_valueVector;
     }
 
-    void operator= ( const YannisHashMap& ) = delete;
-    void operator= ( YannisHashMap&& ) = delete;
+    void operator= ( const YannisStackHashMap& ) noexcept = delete;
+    void operator= ( const YannisStackHashMap&& ) noexcept = delete;
 
+    void push (
+        _IndexType _index,
+        _ValueType _value
+    ) noexcept {
+        m_size++;
+        if ( m_size > m_capacity )
+        {
+            m_capacity += 6uz;
+            _IndexType cpy_Index[m_size];
+            _ValueType cpy_Value[m_size];
 
-};
+            for ( std::size_t index { 0uz }; index < m_size; index++ )
+            {
+                cpy_Index[index] = m_indexVector[index];
+                cpy_Value[index] = m_valueVector[index];
+            }
 
-class YannisStack final
-{
-    
-    public:
+            delete[] m_indexVector;
+            delete[] m_valueVector;
+
+            m_indexVector = new _IndexType[m_capacity];
+            m_valueVector = new _ValueType[m_capacity];
+
+            for ( std::size_t index { 0uz }; index < m_size; index++ )
+            {
+                m_indexVector[index] = cpy_Index[index];
+                m_valueVector[index] = cpy_Value[index];
+            }
+        } else
+        {
+            m_offset++;
+            m_indexVector[m_offset] = _index;
+            m_valueVector[m_offset] = _value;
+            if ( m_offset >= m_size )
+            {
+                m_size++;
+            }
+        }
+    }
+
+    void pop ( ) noexcept
+    {
+
+    }
+
+    const _ValueType& top ( ) noexcept {
+
+    }
+
+    const _ValueType& operator[] ( _IndexType _index ) noexcept
+    {
+
+    }
+
+    #pragma clang diagnostic pop
+    #endif
 };
