@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <type_traits>
 #include <initializer_list>
+#include <tuple>
+#include <optional>
 
 /// @note Types must be a non-cost and non-volatile.
 template < typename _IndexType, typename _ValueType >
@@ -37,9 +39,6 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
 
         m_indexVector = new _IndexType[m_capacity];
         m_valueVector = new _ValueType[m_capacity];
-
-        /// i looked at the initializer_list source code and a const_iterator is just a 'const type *' makes sense since its suppose to do its job at compile-time
-        /// was thinking it was a struct
 
         std::size_t index { 0uz };
         for (
@@ -125,7 +124,7 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
             m_offset++;
             m_indexVector[m_offset] = _index;
             m_valueVector[m_offset] = _value;
-            if ( m_offset >= m_size )
+            if ( m_offset == m_size )
             {
                 m_size++;
             }
@@ -134,18 +133,48 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
 
     void pop ( ) noexcept
     {
-
+        if constexpr ( std::is_arithmetic_v<_ValueType> && std::is_arithmetic_v<_IndexType> )
+        {
+            m_valueVector[m_offset] = static_cast<_ValueType>(0);
+            m_indexVector[m_offset] = static_cast<_IndexType>(0);
+            m_offset--;
+        } else if constexpr ( std::is_arithmetic_v<_ValueType> && !std::is_arithmetic_v<_IndexType> )
+        {
+            m_valueVector[m_offset] = static_cast<_ValueType>(0);
+            m_indexVector[m_offset] = nullptr;
+            m_offset--;
+        } else if constexpr ( std::is_arithmetic_v<_IndexType> )
+        {
+            m_valueVector[m_offset] = nullptr;
+            m_indexVector[m_offset] = static_cast<_IndexType>(0);
+            m_offset--;
+        } else
+        {
+            m_valueVector[m_offset] = nullptr;
+            m_indexVector[m_offset] = nullptr;
+            m_offset--;
+        }
     }
 
-    const _ValueType& top ( ) noexcept {
-
-    }
-
-    const _ValueType& operator[] ( _IndexType _index ) noexcept
+    std::tuple<const _ValueType&, const _IndexType&> top ( ) noexcept
     {
+        return { m_valueVector[m_offset], m_indexVector[m_offset] };
+    }
 
+    std::optional<const _ValueType&> operator[] ( _IndexType _index ) noexcept
+    {
+        for ( std::size_t index { 0uz }; index < m_size; index++ )
+        {
+            if ( m_indexVector[index] == _index )
+            {
+                return m_valueVector[index];
+            }
+        }
+
+        return std::nullopt;
     }
 
     #pragma clang diagnostic pop
     #endif
 };
+

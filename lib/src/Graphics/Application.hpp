@@ -18,6 +18,42 @@
 #include <vector>
 #include <array>
 
+namespace Djinn
+{
+    static constexpr uint32_t windowWidth { 800u };
+    static constexpr uint32_t windowHeight { 1200u };
+    static constexpr uint32_t vulkanVersion { VK_API_VERSION_1_4 };
+    static constexpr uint32_t maxFramesInFlight { 2u };
+    static constexpr VkFormat swapChainFormat { VK_FORMAT_B8G8R8A8_SRGB };
+    static constexpr VkFormat depthFormat { VK_FORMAT_D32_SFLOAT };
+
+    struct FrameResource final
+    {
+        VkCommandPool commandPool { VK_NULL_HANDLE };
+        VkCommandBuffer commandBuffer { VK_NULL_HANDLE };
+        VkSemaphore imageAcquiredSemaphore { VK_NULL_HANDLE };
+    };
+
+    class Application final
+    {
+        bool m_running { false };
+        
+        SDL_Window* m_window { nullptr };
+        VkInstance m_instance { VK_NULL_HANDLE };
+        VkPhysicalDevice m_physicalDevice { VK_NULL_HANDLE };
+        VkDevice m_device { VK_NULL_HANDLE };
+        VkSurfaceKHR m_surface { VK_NULL_HANDLE };
+        VmaAllocator m_allocator { nullptr };
+
+        uint64_t m_nextSignalValue { 3ULL };
+        uint64_t m_frameCounter { 0ULL };
+        uint64_t m_frameIndex { 0ULL };
+        public:
+
+    };
+}
+
+
 namespace afo
 {
     constexpr uint32_t width { 800u };
