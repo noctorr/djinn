@@ -47,7 +47,13 @@ VkResult Djinn::Application::p_createInstance() noexcept
     uint32_t instExtCount { 0u };
     const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&instExtCount);
 
+    if ( extensions == NULL )
+    {
+        return VK_INCOMPLETE;
+    }
+
     std::vector<const char*> requestedLayers { "VK_LAYER_KHRONOS_Validation" };
+
     VkInstanceCreateInfo instCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
