@@ -47,16 +47,28 @@ VkResult Djinn::Application::p_createInstance() noexcept
     uint32_t instExtCount { 0u };
     const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&instExtCount);
 
-    if ( extensions == NULL )
+    if ( !extensions )
     {
         return VK_INCOMPLETE;
     }
 
     std::vector<const char*> requestedLayers { "VK_LAYER_KHRONOS_Validation" };
 
+    VkDebugUtilsMessengerCreateInfoEXT debugInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = VKDebug::debugCallback
+    };
+
     VkInstanceCreateInfo instCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = &debugInfo,
         .pApplicationInfo = &appInfo,
         .enabledLayerCount = static_cast<uint32_t>(requestedLayers.size()),
         .ppEnabledLayerNames = requestedLayers.data(),
