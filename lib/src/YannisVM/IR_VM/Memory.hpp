@@ -131,7 +131,7 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
         }
     }
 
-    void pop ( ) noexcept
+    constexpr void pop ( ) noexcept
     {
         if constexpr ( std::is_arithmetic_v<_ValueType> && std::is_arithmetic_v<_IndexType> )
         {
