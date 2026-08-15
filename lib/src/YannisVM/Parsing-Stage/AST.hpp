@@ -25,7 +25,7 @@ struct ASTNode final
     {}
 };
 
-// Counts as HexaDecimal
+/// @note Counts as HexaDecimal
 struct BinaryExpression : public Expression<long long>
 {
     std::unique_ptr<Expression> expr;

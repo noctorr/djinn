@@ -3,10 +3,35 @@
 #include "AST.hpp"
 
 namespace vm {
-    class Parser final
+    enum class VmResult : unsigned char
     {
 
+    };
+
+    class Parser final
+    {
+        std::unique_ptr<std::vector<Token>> m_tokens;
         public:
+        size_t current{};
+        bool code { false };
+        explicit Parser(
+            std::string_view m_source
+        ) noexcept {
+            Lexer lexer { std::make_unique<std::string_view>(m_source) };
+            bool result = lexer.tokenise();
+
+            if ( result )
+            {
+                m_tokens = std::move(lexer.tokens);
+            } else
+            {
+                return;
+            }
+        }
+
+        [[nodiscard]] VmResult Parse() noexcept;
+        private:
+        
 
     };
 }

@@ -20,27 +20,27 @@ bool vm::Lexer::tokenise () noexcept
             continue;
         } else if ( std::isdigit(current) )
         {
-            tokens.emplace_back(
+            (*tokens).emplace_back(
                 numberise()
             );
         } else if ( std::isalpha(current) )
         {
-            tokens.emplace_back(
+            (*tokens).emplace_back(
                 identifier()
             );
         } else if ( current == '[' )
         {
-            tokens.emplace_back(
+            (*tokens).emplace_back(
                 vectorise()
             );
         } else if ( current == ';' )
         {
-            tokens.emplace_back(
+            (*tokens).emplace_back(
                 vm::Token(vm::TokenType::semicolon, ";")
             );
         } else
         {
-            tokens.emplace_back(
+            (*tokens).emplace_back(
                 operatorise()
             );
         }
@@ -48,7 +48,7 @@ bool vm::Lexer::tokenise () noexcept
         continue;
     }
 
-    tokens.emplace_back(vm::Token(vm::TokenType::eof, ""));
+    (*tokens).emplace_back(vm::Token(vm::TokenType::eof, ""));
     return m_running;
 }
 
@@ -237,5 +237,45 @@ vm::Token vm::Lexer::operatorise ( ) noexcept
         }
     }
     #pragma clang diagnostic pop
+    #else
+    if (
+        val != ttOperatorHashMap.end()
+    )
+    {
+        if ( val->first == "!" &&
+            (*m_source)[m_current+1] == '='
+        )
+        {
+            value.push_back('=');
+            m_current += 2;
+            return vm::Token(vm::TokenType::does_not_equal, value);
+        } else if ( val->first == "=" &&
+            (*m_source)[m_current+1] == '='
+        )
+        {
+            value.push_back('=');
+            m_current += 2;
+            return vm::Token(vm::TokenType::is_equal, value);
+        } else
+        {
+            return vm::Token(val->second, value);
+        }
+    } else
+    {
+        value.push_back(
+            (*m_source)[m_current+1]
+        );
+
+        std::unordered_map<std::string, vm::TokenType>::const_iterator val_2 = ttOperatorHashMap.find(value);
+
+        if ( val_2 != ttOperatorHashMap.end() )
+        {
+            return vm::Token(val_2->second, value);
+        } else
+        {
+            m_running = false;
+            return vm::Token(vm::TokenType::error, "");
+        }
+    }
     #endif 
 }

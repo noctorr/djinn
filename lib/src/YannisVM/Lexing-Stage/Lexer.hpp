@@ -13,6 +13,8 @@ namespace vm
         #pragma clang diagnostic ignored "-Wc++23-extensions"
         size_t m_current { 0uz };
         #pragma clang diagnostic pop
+        #else
+        size_t m_current{};
         #endif
 
         size_t m_length;
@@ -24,12 +26,12 @@ namespace vm
         ) noexcept : m_source(std::move(_source))
         {
             m_length = (*_source).length();
-            tokens.reserve(
+            (*tokens).reserve(
                 m_length
             );
         }
 
-        std::vector<Token> tokens;
+        std::unique_ptr<std::vector<Token>> tokens;
         bool tokenise() noexcept;
 
         private:
