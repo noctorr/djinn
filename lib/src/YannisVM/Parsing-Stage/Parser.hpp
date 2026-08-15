@@ -5,7 +5,17 @@
 namespace vm {
     enum class VmResult : unsigned char
     {
+        SUCCESS,
+        SYNTAX,
+        OVERFLOW,
+        SAFETY,
+        ARITHMETIC,
+        UNKOWN
+    };
 
+    enum class ERROR_MSG : unsigned char
+    {
+        
     };
 
     class Parser final
