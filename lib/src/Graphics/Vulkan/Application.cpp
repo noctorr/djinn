@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include "VulkanDebug.hpp"
+#include "VulkanAlloc.hpp"
 
 #include <FileReader.hpp>
 
@@ -26,7 +27,7 @@ bool Djinn::Application::initialiseApplication() noexcept
     return initialiseVulkan();
 }
 
-VkResult Djinn::Application::p_createInstance() noexcept
+VkResult Djinn::Application::p_initInstance() noexcept
 {
     if ( volkInitialize() != VK_SUCCESS )
     {
@@ -84,8 +85,51 @@ VkResult Djinn::Application::p_createInstance() noexcept
     } else
     {
         volkLoadInstance(m_instance);
-        return result;
+
+        if ( !SDL_Vulkan_CreateSurface(m_window, m_instance, nullptr, &m_surface) )
+        {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        } else
+        {
+            return result;
+        }
     }
+}
+
+bool Djinn::Application::p_initPhysicalDevices() noexcept
+{
+    uint32_t physDeviceCount{};
+    vkEnumeratePhysicalDevices(m_instance, &physDeviceCount, nullptr);
+    std::vector<VkPhysicalDevice> physDevices(physDeviceCount);
+    vkEnumeratePhysicalDevices(m_instance, &physDeviceCount, physDevices.data());
+
+    VkPhysicalDevice physicalDevice { VK_NULL_HANDLE };
+    VkPhysicalDeviceType physDeviceType;
+
+    if (physDeviceCount)
+    {
+        physicalDevice = physDevices[0];
+        VkPhysicalDeviceProperties deviceProp{};
+        vkGetPhysicalDeviceProperties(physicalDevice, &deviceProp);
+        physDeviceType = deviceProp.deviceType;
+        for ( const auto& physDevice : physDevices )
+        {
+            VkPhysicalDeviceProperties deviceProps{};
+            vkGetPhysicalDeviceProperties(physDevice, &deviceProps);
+            if ( deviceProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU )
+            {
+                physicalDevice = physDevice;
+                physDeviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+            } else if ( deviceProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU && 
+                physDeviceType == VK_PHYSICAL_DEVICE_TYPE_CPU )
+            {
+                physicalDevice = physDevice;
+                physDeviceType = VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+            }
+        }
+    }
+
+
 }
 
 bool Djinn::Application::initialiseVulkan() noexcept

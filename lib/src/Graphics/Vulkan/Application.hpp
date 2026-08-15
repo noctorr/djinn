@@ -73,7 +73,8 @@ namespace Djinn
         VkSemaphore m_timelineSemaphore { VK_NULL_HANDLE };
         std::array<FrameResource, maxFramesInFlight> m_frameResources;
 
-        VkResult p_createInstance() noexcept;
+        VkResult p_initInstance() noexcept;
+        bool p_initPhysicalDevices() noexcept;
 
         void SDL_reportError( const char* errorMsg ) noexcept
         {
