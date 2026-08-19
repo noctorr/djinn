@@ -21,6 +21,7 @@ namespace vm {
     class Parser final
     {
         std::unique_ptr<std::vector<Token>> m_tokens;
+        std::vector<ASTNode>
         public:
         size_t current{};
         bool code { false };
@@ -41,7 +42,7 @@ namespace vm {
 
         [[nodiscard]] VmResult Parse() noexcept;
         private:
-        
+        void repeatParseExpression() noexcept;
 
     };
 }

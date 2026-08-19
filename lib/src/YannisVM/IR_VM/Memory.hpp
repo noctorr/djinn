@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <tuple>
 #include <optional>
+#include <any>
 
 /// @note Types must be a non-cost and non-volatile.
 template < typename _IndexType, typename _ValueType >
@@ -14,6 +15,9 @@ requires ( std::is_same_v< typename std::remove_cv<_IndexType>::type,
     _ValueType> )
 class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")]] YannisStackHashMap final
 {
+    public:
+    explicit YannisStackHashMap() = default;
+    private:
     #if defined(__clang__)
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wc++23-extensions"
@@ -22,6 +26,7 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
     std::size_t m_capacity, m_size, m_offset { 0uz };
 
     public:
+
     explicit YannisStackHashMap(
         std::initializer_list<
             _IndexType
@@ -181,6 +186,7 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
     std::size_t m_capacity, m_size, m_offset { 0 };
 
     public:
+
     explicit YannisStackHashMap(
         std::initializer_list<
             _IndexType
@@ -335,3 +341,12 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
     #endif
 };
 
+class YannisStackPointer final
+{
+    YannisStackHashMap<uint16_t, std::any> m_memoryHashMap;
+    std::size_t m_sizeOfStack;
+
+    public:
+
+    /// @note future logic here
+};

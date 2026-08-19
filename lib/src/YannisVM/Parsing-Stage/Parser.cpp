@@ -8,3 +8,10 @@
         
     }
 }
+
+void repeatParseExpression() noexcept
+{
+    while (
+        current != 
+    )
+}

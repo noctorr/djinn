@@ -11,12 +11,11 @@ struct Expression
     virtual ~Expression();
 };
 
-template < typename _Type >
 struct ASTNode final
 {
     ASTNode* left;
     ASTNode* right;
-    Expression<_Type> expr; 
+    Expression expr;
 
     ASTNode(
         ASTNode* _left,

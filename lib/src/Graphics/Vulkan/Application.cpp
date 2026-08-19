@@ -129,7 +129,7 @@ bool Djinn::Application::p_initPhysicalDevices() noexcept
         }
     }
 
-
+    
 }
 
 bool Djinn::Application::initialiseVulkan() noexcept
