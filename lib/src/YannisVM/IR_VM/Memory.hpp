@@ -6,6 +6,9 @@
 #include <tuple>
 #include <optional>
 #include <any>
+#include <span>
+
+#define STACKMAXSIZE 900000
 
 /// @note Types must be a non-cost and non-volatile.
 template < typename _IndexType, typename _ValueType >
@@ -79,13 +82,31 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
         m_valueVector[0] = value;
     }
 
-    YannisStackHashMap(
+    explicit YannisStackHashMap(
         const YannisStackHashMap&
     ) noexcept = delete;
 
-    YannisStackHashMap(
-        const YannisStackHashMap&&
-    ) noexcept = delete;
+    explicit YannisStackHashMap(
+        YannisStackHashMap&& _xval
+    ) noexcept {
+        if ( _xval != this )
+        {
+            delete[] m_indexVector;
+            delete[] m_valueVector;
+
+            m_indexVector = new _IndexType[_xval.m_capacity];
+            m_valueVector = new _ValueType[_xval.m_capacity];
+
+            m_indexVector = _xval.m_indexVector;
+            m_valueVector = _xval.m_valueVector;
+
+            delete[] _xval.m_indexVector;
+            delete[] _xval.m_valueVector;
+
+            _xval.m_indexVector = nullptr;
+            _xval.m_valueVector = nullptr;
+        }
+    }
 
     ~YannisStackHashMap() noexcept
     {
@@ -94,9 +115,66 @@ class [[nodiscard("The object, 'YannisHashMap' must be assigned to a variable.")
     }
 
     void operator= ( const YannisStackHashMap& ) noexcept = delete;
-    void operator= ( const YannisStackHashMap&& ) noexcept = delete;
+    YannisStackHashMap& operator= ( YannisStackHashMap&& _xval ) noexcept {
+        if ( _xval != this )
+        {
+            delete[] m_indexVector;
+            delete[] m_valueVector;
 
-    void push (
+            m_indexVector = new _IndexType[_xval.m_capacity];
+            m_valueVector = new _ValueType[_xval.m_capacity];
+
+            m_indexVector = _xval.m_indexVector;
+            m_valueVector = _xval.m_valueVector;
+
+            delete[] _xval.m_indexVector;
+            delete[] _xval.m_valueVector;
+
+            _xval.m_indexVector = nullptr;
+            _xval.m_valueVector = nullptr;
+        }
+
+        return *this;
+    }
+
+    size_t operator() (
+        std::initializer_list<_IndexType> _indexList,
+        std::initializer_list<_ValueType> _valueList
+    ) noexcept {
+        const std::size_t indexSize = _indexList.size();
+        const std::size_t valueSize = _valueList.size();
+        const std::size_t trueSize = (indexSize > valueSize) ? indexSize : valueSize;
+        m_size = trueSize;
+        m_capacity = trueSize + 5uz;
+        m_offset = trueSize - 1uz;
+
+        m_indexVector = new _IndexType[m_capacity];
+        m_valueVector = new _ValueType[m_capacity];
+
+        std::size_t index { 0uz };
+        for (
+            typename std::initializer_list<_IndexType>::const_iterator value = _indexList.begin();
+            value != _indexList.end();
+            ++value, ++index)
+        {
+            m_indexVector[index] = *value;
+        }
+
+        index = 0uz;
+        size_t bytesSize { 0uz };
+        for (
+            typename std::initializer_list<_ValueType>::const_iterator value = _valueList.begin();
+            value != _valueList.end();
+            ++value, ++index)
+        {
+            bytesSize += sizeof(*value);
+            m_valueVector[index] = *value;
+        }
+
+        return bytesSize;
+    }
+
+    constexpr void push (
         _IndexType _index,
         _ValueType _value
     ) noexcept {
@@ -347,6 +425,13 @@ class YannisStackPointer final
     std::size_t m_sizeOfStack;
 
     public:
+    explicit YannisStackPointer(
+        std::initializer_list<uint16_t>,
+        std::initializer_list<std::any>
+    ) noexcept;
+    explicit YannisStackPointer( const YannisStackPointer& ) noexcept;
+    explicit YannisStackPointer( YannisStackPointer&& ) noexcept;
 
-    /// @note future logic here
+    constexpr void push() noexcept;
+    constexpr void pop() noexcept;
 };
