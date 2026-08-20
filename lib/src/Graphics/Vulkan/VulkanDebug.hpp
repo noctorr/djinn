@@ -15,4 +15,16 @@ namespace VKDebug {
 
         return VK_FALSE;
     }
+
+    inline void event(
+        const char* pMessage
+    ) {
+        std::cout << pMessage << std::endl;
+    }
+
+    inline void physdevice_type_event(
+        uint64_t enumVal
+    ) {
+        std::cout << enumVal << std::endl;
+    }
 }
