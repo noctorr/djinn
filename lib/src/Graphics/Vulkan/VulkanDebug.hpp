@@ -1,10 +1,14 @@
-#include "Application.hpp"
 #include <iostream>
+
+#define VK_NO_PROTOTYPES
+#include <vulkan/vulkan_core.h>
+
+#define DEBUG_MODE__
 
 namespace VKDebug {
     inline VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        const VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData
     ) {
@@ -26,5 +30,11 @@ namespace VKDebug {
         uint64_t enumVal
     ) {
         std::cout << enumVal << std::endl;
+    }
+
+    inline void bad_event(
+        const char* pMessage
+    ) {
+        std::cerr << pMessage << std::endl;
     }
 }

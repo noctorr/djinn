@@ -22,8 +22,6 @@ namespace ftl
             std::istreambuf_iterator<char>()
         };
 
-        file.close();
-
         return content;
     }
 
@@ -48,7 +46,6 @@ namespace ftl
                     std::istreambuf_iterator<char>()
                 };
                 content = std::move(fileContent);
-                file.close();
             }
         }
 

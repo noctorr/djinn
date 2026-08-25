@@ -1,10 +1,10 @@
 #include <SDL3/SDL.h>
 
 namespace Djinn {
-    inline SDL_Window* window { nullptr };
+    inline static SDL_Window* window          { nullptr };
 
-    static constexpr uint32_t width { 1200u };
-    static constexpr uint32_t height { 800u };
+    inline static constexpr uint32_t width    {  1200u  };
+    inline static constexpr uint32_t height   {  800u   };
 
     inline void SDL_ReportError( const char* pMessage ) noexcept
     {
