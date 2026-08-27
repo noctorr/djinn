@@ -87,7 +87,7 @@ static constexpr double UTL_MEMORY_CONSTANT = 1024.0 * 1024.0 * 1024.0;
 #ifdef __GNUC__
 [[gnu::hot]]
 #endif
-uint8_t UTL_ScoreDeviceCapability(
+[[nodiscard]] uint8_t UTL_ScoreDeviceCapability(
     const VkPhysicalDeviceProperties2&       deviceProps,
     const VkPhysicalDeviceFeatures2&         deviceFeatures,
     const VkPhysicalDeviceMemoryProperties2& deviceMemoryProps
@@ -292,7 +292,7 @@ uint8_t UTL_ScoreDeviceCapability(
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
-    VkDeviceCreateInfo deviceCreateInfo
+    const VkDeviceCreateInfo deviceCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = &features,
@@ -384,7 +384,7 @@ uint8_t UTL_ScoreDeviceCapability(
         return false;
     }
 
-    VkSwapchainCreateInfoKHR swapChainCreateInfo
+    const VkSwapchainCreateInfoKHR swapChainCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface,
@@ -413,7 +413,7 @@ uint8_t UTL_ScoreDeviceCapability(
     }
 }
 
-[[nodiscard]] inline extern bool Djinn::initVMA() noexcept
+[[nodiscard]] inline bool Djinn::Device::initVMA() noexcept
 {
     VmaVulkanFunctions vmaFuncInfo{};
     VmaAllocatorCreateInfo vmaAllocCreateInfo
@@ -442,7 +442,7 @@ uint8_t UTL_ScoreDeviceCapability(
 
 [[nodiscard]] bool Djinn::Pipeline::initGFXPipeline() noexcept
 {
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo
+    const VkPipelineLayoutCreateInfo pipelineLayoutInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 0,
@@ -477,18 +477,18 @@ uint8_t UTL_ScoreDeviceCapability(
         }
     };
 
-    VkPipelineVertexInputStateCreateInfo vertInputInfo
+    const VkPipelineVertexInputStateCreateInfo vertInputInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
     };
 
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo
+    const VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
     };
 
-    VkPipelineDepthStencilStateCreateInfo depthStencilInfo
+    const VkPipelineDepthStencilStateCreateInfo depthStencilInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .depthTestEnable = VK_TRUE,
@@ -497,7 +497,7 @@ uint8_t UTL_ScoreDeviceCapability(
         .stencilTestEnable = VK_FALSE
     };
 
-    VkPipelineViewportStateCreateInfo viewportInfo
+    const VkPipelineViewportStateCreateInfo viewportInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .viewportCount = 1,
@@ -506,7 +506,7 @@ uint8_t UTL_ScoreDeviceCapability(
         .pScissors = nullptr
     };
 
-    VkPipelineRasterizationStateCreateInfo rasterInfo
+    const VkPipelineRasterizationStateCreateInfo rasterInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .polygonMode = VK_POLYGON_MODE_FILL,
@@ -515,20 +515,20 @@ uint8_t UTL_ScoreDeviceCapability(
         .lineWidth = 1.f
     };
 
-    VkPipelineMultisampleStateCreateInfo multiSampleInfo
+    const VkPipelineMultisampleStateCreateInfo multiSampleInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT
     };
 
-    VkPipelineColorBlendAttachmentState attachState
+    const VkPipelineColorBlendAttachmentState attachState
     {
         .blendEnable = VK_FALSE,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
             VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
     };
 
-    VkPipelineColorBlendStateCreateInfo blendInfo
+    const VkPipelineColorBlendStateCreateInfo blendInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .attachmentCount = 1,
@@ -540,14 +540,14 @@ uint8_t UTL_ScoreDeviceCapability(
         VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
     };
 
-    VkPipelineDynamicStateCreateInfo dynamicStateInfo
+    const VkPipelineDynamicStateCreateInfo dynamicStateInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .dynamicStateCount = static_cast<uint32_t>(dynamicState.size()),
         .pDynamicStates = dynamicState.data()
     };
 
-    VkPipelineRenderingCreateInfo renderInfo
+    const VkPipelineRenderingCreateInfo renderInfo
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .colorAttachmentCount = 1,
@@ -555,7 +555,7 @@ uint8_t UTL_ScoreDeviceCapability(
         .depthAttachmentFormat = depthFormat
     };
 
-    VkGraphicsPipelineCreateInfo pipelineInfo
+    const VkGraphicsPipelineCreateInfo pipelineInfo
     {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = &renderInfo,
@@ -590,7 +590,7 @@ uint8_t UTL_ScoreDeviceCapability(
     }
 }
 
-[[nodiscard]] inline static bool Djinn::initShaders() noexcept
+[[nodiscard]] bool Djinn::Pipeline::initShaders() noexcept
 {
     const std::optional<std::string> sourceFrag = ftl::readFile("../Modules/glsl/default.frag");
     const std::optional<std::string> sourceVert = ftl::readFile("../Modules/glsl/default.vert");
@@ -636,7 +636,7 @@ uint8_t UTL_ScoreDeviceCapability(
     std::vector<uint32_t> frag { fragResult.cbegin(), fragResult.cend() };
     std::vector<uint32_t> vert { vertResult.cbegin(), vertResult.cend() };
 
-    VkShaderModuleCreateInfo vertCreateInfo
+    const VkShaderModuleCreateInfo vertCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
@@ -645,7 +645,7 @@ uint8_t UTL_ScoreDeviceCapability(
         .pCode = vert.data()
     };
 
-    VkShaderModuleCreateInfo fragCreateInfo
+    const VkShaderModuleCreateInfo fragCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
@@ -678,14 +678,14 @@ uint8_t UTL_ScoreDeviceCapability(
 
 [[nodiscard]] bool Djinn::Device::initSynchronisation() noexcept
 {
-    VkSemaphoreTypeCreateInfo semTypeInfo
+    const VkSemaphoreTypeCreateInfo semTypeInfo
     {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
         .semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE,
         .initialValue = 3
     };
 
-    VkSemaphoreCreateInfo semCreateInfo
+    const VkSemaphoreCreateInfo semCreateInfo
     {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
         .pNext = &semTypeInfo

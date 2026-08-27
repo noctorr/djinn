@@ -8,42 +8,45 @@
 #endif
 
 namespace Djinn_VKMemoryAlloc {
-    #ifdef __VK_GCC_ATTR
-    [[gnu::hot]] 
-    #endif
-    inline static void* heap_allocCallback(
-        void* pUserdata,
-        size_t size,
-        size_t alignment,
-        VkSystemAllocationScope allocScope
-    );
+    struct VKHeap_Buffer final
+    {
+        #ifdef __VK_GCC_ATTR
+        [[gnu::hot]] [[gnu::malloc]]
+        #endif
+        void* heap_allocCallback(
+            void* pUserdata,
+            size_t size,
+            size_t alignment,
+            VkSystemAllocationScope allocScope
+        );
 
-    #ifdef __VK_GCC_ATTR
-    [[gnu::hot]]
-    #endif
-    inline static void* heap_reallocCallback(
-        void* pUserdata,
-        void* pOriginal,
-        size_t size,
-        size_t alignment,
-        VkSystemAllocationScope allocScope
-    );
+        #ifdef __VK_GCC_ATTR
+        [[gnu::hot]] [[gnu::malloc]]
+        #endif
+        void* heap_reallocCallback(
+            void* pUserdata,
+            void* pOriginal,
+            size_t size,
+            size_t alignment,
+            VkSystemAllocationScope allocScope
+        );
 
-    #ifdef __VK_GCC_ATTR
-    [[gnu::hot]]
-    #endif
-    inline static void heap_freeCallback(
-        void* pUserdata,
-        void* pMemory
-    );
+        #ifdef __VK_GCC_ATTR
+        [[gnu::hot]]
+        #endif
+        void heap_freeCallback(
+            void* pUserdata,
+            void* pMemory
+        );
 
-    #ifdef __VK_GCC_ATTR
-    [[gnu::hot]]
-    #endif
-    inline static void heap_internalAllocCallback(
-        void* pUserdata,
-        size_t size,
-        VkInternalAllocationType allocType,
-        VkSystemAllocationScope allocScope
-    );
+        #ifdef __VK_GCC_ATTR
+        [[gnu::hot]]
+        #endif
+        void heap_internalAllocCallback(
+            void* pUserdata,
+            size_t size,
+            VkInternalAllocationType allocType,
+            VkSystemAllocationScope allocScope
+        );
+    };
 }

@@ -33,7 +33,7 @@ bool Engine::Application::initialise() noexcept
     }
 
     if (
-        !Djinn::initVMA()
+        !m_logicalDevice.initVMA()
     ) {
         return false;
     }
@@ -48,7 +48,7 @@ bool Engine::Application::initialise() noexcept
     }
 
     if (
-        !Djinn::initShaders()
+        !m_pipeline.initShaders()
     ) {
         return false;
     }
@@ -74,3 +74,7 @@ bool Engine::Application::initialise() noexcept
     return true;
 }
 
+void Engine::Application::shutdown() noexcept
+{
+    
+}

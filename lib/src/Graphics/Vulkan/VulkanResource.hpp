@@ -34,8 +34,6 @@ namespace Djinn {
     inline static VmaAllocator vkAllocator             { VK_NULL_HANDLE };
     inline static VmaAllocation depthImgAllocation     { VK_NULL_HANDLE };
 
-    [[nodiscard]] inline static bool initVMA() noexcept;
-
     inline static VkPipelineLayout pipelineLayout      { VK_NULL_HANDLE };
 
     inline static VkShaderModule vertShader            { VK_NULL_HANDLE };
@@ -47,8 +45,6 @@ namespace Djinn {
 
     inline static VkImageView depthImageView           { VK_NULL_HANDLE };
     inline static VkImage depthImage                   { VK_NULL_HANDLE };
-
-    [[nodiscard]] static inline bool initShaders() noexcept;
 
     struct Instance final {
         VkInstance instance      { VK_NULL_HANDLE };
@@ -68,6 +64,8 @@ namespace Djinn {
         [[nodiscard]] bool initDevice() noexcept;
         [[nodiscard]] bool initSynchronisation() noexcept;
         [[nodiscard]] bool initCommandBuffers() noexcept;
+        [[nodiscard]] bool initVMA() noexcept;
+
     };
 
     struct Swapchain final {
@@ -89,6 +87,8 @@ namespace Djinn {
 
         [[nodiscard]] bool initGFXQueue() noexcept;
         [[nodiscard]] bool initGFXPipeline() noexcept;
+        [[nodiscard]] bool initShaders() noexcept;
+
     };
 
     struct Frame final

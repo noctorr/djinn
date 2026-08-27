@@ -16,7 +16,7 @@ namespace Djinn {
         );
     }
 
-    inline bool createWindow() noexcept
+    [[nodiscard]] inline bool createWindow() noexcept
     {
         if ( !SDL_InitSubSystem(SDL_INIT_VIDEO) )
         {
