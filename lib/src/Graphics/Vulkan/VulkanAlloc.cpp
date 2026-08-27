@@ -3,7 +3,7 @@
 #include <cstring>
 
 #ifdef __VK_GCC_ATTR
-[[gnu::hot]]
+[[gnu::hot]] [[gnu::malloc]]
 #endif
 void* Djinn_VKMemoryAlloc::VKHeap_Buffer::heap_allocCallback(
     void* pUserdata,
