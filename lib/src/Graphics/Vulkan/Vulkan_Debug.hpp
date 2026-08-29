@@ -1,11 +1,9 @@
+#pragma once
+
+#include "Vulkan_Context.hpp"
 #include <iostream>
 
-#define VK_NO_PROTOTYPES
-#include <vulkan/vulkan_core.h>
-
-#define DEBUG_MODE__
-
-namespace VKDebug {
+namespace VK_Debug {
     inline VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         const VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -18,23 +16,5 @@ namespace VKDebug {
         }
 
         return VK_FALSE;
-    }
-
-    inline void event(
-        const char* pMessage
-    ) {
-        std::cout << pMessage << std::endl;
-    }
-
-    inline void physdevice_type_event(
-        uint64_t enumVal
-    ) {
-        std::cout << enumVal << std::endl;
-    }
-
-    inline void bad_event(
-        const char* pMessage
-    ) {
-        std::cerr << pMessage << std::endl;
     }
 }

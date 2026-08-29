@@ -1,9 +1,9 @@
-#version 460
+#version 460 core
 
-void fragment() {
-    c
-}
+out vec4 fragColor;
+
+in vec4 vertexColor;
 
 void main() {
-    fragment();
+    fragColor = vertexColor;
 }

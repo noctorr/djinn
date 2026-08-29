@@ -1,14 +1,15 @@
 #include <csignal>
+#include <cstdlib>
 
-// just testing it out
-volatile std::sig_atomic_t running = 1;
+static volatile std::sig_atomic_t running = 1;
 
 void signalInterruption(int)
 {
     running = 0;
 }
 
-int main() {
+int main(void)
+{
 
-    return 0;
+    return EXIT_SUCCESS;
 }
