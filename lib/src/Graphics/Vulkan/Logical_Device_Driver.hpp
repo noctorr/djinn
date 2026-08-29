@@ -28,6 +28,5 @@ namespace Djinn_Vulkan {
         ) noexcept;
 
         [[nodiscard]] bool createSurface() noexcept;
-        void maxAPICheck() noexcept;
     };
 }
