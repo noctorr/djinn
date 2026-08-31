@@ -25,6 +25,11 @@ namespace Vulkan_Memory {
         m_allocCount++;
     }
 
+    inline void Heap_Callback::decrement() noexcept
+    {
+        m_allocCount--;
+    }
+
     inline void Heap_Callback::add(size_t size) noexcept
     {
         m_heapCounter += size;

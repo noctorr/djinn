@@ -17,4 +17,10 @@ namespace VK_Debug {
 
         return VK_FALSE;
     }
+
+    inline void bad_event(
+        const char* pMessage
+    ) {
+        std::cerr << pMessage << std::endl;
+    }
 }

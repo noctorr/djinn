@@ -44,6 +44,12 @@ namespace Vulkan_Memory {
             size = (size + alignment - 1) & ~(alignment - 1);
 
             void* memory = std::aligned_alloc(alignment, size);
+
+            if (
+                memory == nullptr
+            ) {
+                return nullptr;
+            }
             
             Heap_Callback& memory_tracker = *m_singleton;
 
@@ -54,12 +60,14 @@ namespace Vulkan_Memory {
             allocTracker.alignment = alignment;
             allocTracker.allocScope = allocScope;
 
+            *reinterpret_cast<size_t*>((uint8_t*)memory + alignment - sizeof(size_t)) = alignment;
+
             MemoryHeader* memHeader = reinterpret_cast<MemoryHeader*>(memory);
 
             memHeader->size = vkSize;
             memHeader->alignment = alignment;
             memHeader->allocScope = allocScope;
-            return reinterpret_cast<void*>((uint8_t*)memory + memory_header_size);
+            return reinterpret_cast<void*>((uint8_t*)memory + alignment);
         }
 
         #ifdef _GPLUSPLUS
@@ -76,13 +84,59 @@ namespace Vulkan_Memory {
         __attribute__((hot, alloc_align(4), alloc_size(3), malloc))
         #endif
         {
-            
+            if ( !pOriginal ) {
+                return allocCallback(pUserdata, size, alignment, allocScope);
+            } else {
+                alignment = std::max(alignment, memory_header_alignment);
+                uint8_t* memory = reinterpret_cast<uint8_t*>(pOriginal);
+                MemoryHeader* memHeader = reinterpret_cast<MemoryHeader*>(memory - alignment * 3);
+                
+                void* newMemory = std::aligned_alloc(
+                    memHeader->alignment,
+                    memHeader->size
+                );
 
-            
+                if (
+                    newMemory == nullptr
+                ) {
+                    return nullptr;
+                }
+
+                MemoryHeader* newMemHeader = reinterpret_cast<MemoryHeader*>(newMemory);
+                newMemHeader->size = memHeader->size;
+                newMemHeader->alignment = memHeader->alignment;
+                newMemHeader->allocScope = memHeader->allocScope;
+
+                *reinterpret_cast<size_t*>((uint8_t*)newMemory + alignment - sizeof(size_t)) = alignment;
+                std::free(pOriginal);
+
+                return reinterpret_cast<void*>((uint8_t*)newMemory + alignment);
+            }
+        }
+
+        inline static void freeCallback(
+            void* pUserdata,
+            void* pMemory
+        ) noexcept {
+            if ( !pMemory ) {
+                return;
+            }
+
+            uint8_t* memory = reinterpret_cast<uint8_t*>(pMemory);
+            size_t alignment = *reinterpret_cast<size_t*>(memory - sizeof(size_t));
+
+            MemoryHeader* memHeader = reinterpret_cast<MemoryHeader*>(memory - alignment);
+            Heap_Callback& memory_tracker = *m_singleton;
+
+            memory_tracker.sub(memHeader->size);
+            memory_tracker.decrement();
+
+            std::free(pMemory);
         }
 
         private:
         inline void incriment() noexcept;
+        inline void decrement() noexcept;
         inline void add(size_t size) noexcept;
         inline void sub(size_t size) noexcept;
     };

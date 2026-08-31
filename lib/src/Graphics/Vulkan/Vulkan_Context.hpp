@@ -25,3 +25,9 @@
 #if defined(_MSC_VER) && !defined(__clang__)
 #define MS_CPLUSPLUS
 #endif
+
+#ifdef _MSC_VER
+#define VK_LAMBDA_CALL
+#else
+#define VK_LAMBDA_CALL VKAPI_PTR
+#endif

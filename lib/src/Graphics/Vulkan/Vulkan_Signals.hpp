@@ -9,7 +9,7 @@ namespace Djinn_Vulkan {
         public:
         VulkanSignal();
         virtual ~VulkanSignal();
-       [[nodiscard]] virtual VkResult init_instance() noexcept = 0;
+        [[nodiscard]] virtual VkResult init_instance() noexcept = 0;
         [[nodiscard]] virtual bool init_physicalDevice() noexcept = 0;
         [[nodiscard]] virtual bool init_gfxQueue() noexcept = 0;
         [[nodiscard]] virtual bool init_logicalDevice() noexcept = 0;
