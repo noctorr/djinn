@@ -535,7 +535,7 @@ namespace Djinn_Vulkan {
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
         };
 
-        VmaAllocationCreateInfo allocInfo
+        const VmaAllocationCreateInfo allocInfo
         {
             .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
             .usage = VMA_MEMORY_USAGE_AUTO
@@ -582,5 +582,59 @@ namespace Djinn_Vulkan {
         }
     }
 
+    void SwapchainManager::shutdown(
+        VkDevice& logicalDevice,
+        const VkAllocationCallbacks* allocator,
+        VmaAllocator& vmaAlloc
+    ) noexcept {
+        for (
+            VkImageView& imgView : m_imageViews
+        ) {
+            vkDestroyImageView(
+                logicalDevice,
+                imgView,
+                allocator
+            );
+        }
+        m_imageViews.clear();
+
+        for (
+            VkSemaphore& semaphore : renderCompleteSemaphores
+        ) {
+            vkDestroySemaphore(
+                logicalDevice,
+                semaphore,
+                allocator
+            );
+        }
+        renderCompleteSemaphores.clear();
+
+        if (
+            m_swapChain
+        ) {
+            vkDestroySwapchainKHR(
+                logicalDevice,
+                m_swapChain,
+                allocator
+            );
+            m_swapChain = nullptr;
+        }
+
+        if (
+            m_depthImageView
+        ) {
+            vkDestroyImageView(
+                logicalDevice,
+                m_depthImageView,
+                allocator
+            );
+            vmaDestroyImage(
+                vmaAlloc,
+                m_depthImage,
+                m_depthImageAllocation
+            );
+            m_depthImageView = nullptr;
+        }
+    }
 
 }

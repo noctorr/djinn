@@ -32,12 +32,12 @@ namespace Djinn_Vulkan {
 
         VkImage                    m_depthImage              { VK_NULL_HANDLE };
         VkImageView                m_depthImageView          { VK_NULL_HANDLE };
-        VmaAllocation               m_depthImageAllocation   { VK_NULL_HANDLE };
+        VmaAllocation              m_depthImageAllocation    { VK_NULL_HANDLE };
 
         VkSurfaceFormat2KHR        m_surfaceFormat;
         VkPresentModeKHR           m_presentMode;
         public:
-        std::vector<VkSemaphore>   renderCompleteSemaphores  { VK_NULL_HANDLE };
+        std::vector<VkSemaphore>   renderCompleteSemaphores;
         explicit SwapchainManager(
             SDL_Window* window
         ) : m_window(window) {}
@@ -49,9 +49,15 @@ namespace Djinn_Vulkan {
             const VkAllocationCallbacks*,
             VmaAllocator&
         ) noexcept;
+
+        void shutdown(
+            VkDevice&,
+            const VkAllocationCallbacks*,
+            VmaAllocator&
+        ) noexcept;
         private:
         VkExtent2D getSwapExtent(
-            VkSurfaceCapabilities2KHR const& capabilities
+            VkSurfaceCapabilities2KHR const&
         ) noexcept;
     };
 
