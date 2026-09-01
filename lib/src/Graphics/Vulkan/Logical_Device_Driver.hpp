@@ -4,8 +4,57 @@
 #include "Vulkan_Alloc.hpp"
 #include "SDL_Window.hpp"
 
+#include <vector>
+
 namespace Djinn_Vulkan {
     inline static Vulkan_Memory::Heap_Callback standalone{};
+
+    class PipelineManager final
+    {
+        VkPipeline                 m_gfxPipeline        { VK_NULL_HANDLE };
+
+        public:
+
+    };
+
+    class SwapchainManager final
+    {
+        static constexpr VkFormat desiredFormat              =   VK_FORMAT_B8G8R8A8_SRGB;
+        static constexpr VkColorSpaceKHR desiredColorSpace   =   VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+        static constexpr VkPresentModeKHR desiredPresentMode =   VK_PRESENT_MODE_MAILBOX_KHR;
+
+        static constexpr VkFormat depthFormat                =   VK_FORMAT_D32_SFLOAT;
+
+        std::vector<VkImage>       m_images;
+        std::vector<VkImageView>   m_imageViews;
+        VkSwapchainKHR             m_swapChain               { VK_NULL_HANDLE };
+        SDL_Window*                m_window                  { nullptr };
+
+        VkImage                    m_depthImage              { VK_NULL_HANDLE };
+        VkImageView                m_depthImageView          { VK_NULL_HANDLE };
+        VmaAllocation               m_depthImageAllocation   { VK_NULL_HANDLE };
+
+        VkSurfaceFormat2KHR        m_surfaceFormat;
+        VkPresentModeKHR           m_presentMode;
+        public:
+        std::vector<VkSemaphore>   renderCompleteSemaphores  { VK_NULL_HANDLE };
+        explicit SwapchainManager(
+            SDL_Window* window
+        ) : m_window(window) {}
+
+        [[nodiscard]] bool init_Swapchain(
+            VkDevice&,
+            VkPhysicalDevice&,
+            VkSurfaceKHR&,
+            const VkAllocationCallbacks*,
+            VmaAllocator&
+        ) noexcept;
+        private:
+        VkExtent2D getSwapExtent(
+            VkSurfaceCapabilities2KHR const& capabilities
+        ) noexcept;
+    };
+
     class LogicalDeviceDriver final : public VulkanSignal
     {
         VkPhysicalDevice           m_physicalDevice     { VK_NULL_HANDLE };
@@ -16,8 +65,10 @@ namespace Djinn_Vulkan {
 
         Djinn_SDL::Window          m_window;
         uint32_t                   m_gfxFamIdx;
+
         public:
-        uint32_t                   m_userAPIVersion;
+        uint32_t                   userAPIVersion;
+        bool                       hasDesiredFeatures   { false };
 
         [[nodiscard]] VkResult init_instance()    noexcept override;
         [[nodiscard]] bool init_physicalDevice()  noexcept override;

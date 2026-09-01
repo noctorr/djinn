@@ -12,7 +12,7 @@ namespace Vulkan_Memory {
     };
 
     struct MemoryHeader final : public Last_Allocation {};
-    inline static Last_Allocation allocTracker;
+    inline static Last_Allocation allocTracker{};
 
     class Heap_Callback final {
         static Heap_Callback* m_singleton;
@@ -27,7 +27,7 @@ namespace Vulkan_Memory {
         #ifdef _GPLUSPLUS
         [[gnu::hot, gnu::alloc_size(2), gnu::alloc_align(3), gnu::malloc]]
         #endif
-        inline static void* allocCallback(
+        inline static VKAPI_ATTR void* allocCallback(
             void* pUserdata,
             size_t size,
             size_t alignment,
@@ -73,7 +73,7 @@ namespace Vulkan_Memory {
         #ifdef _GPLUSPLUS
         [[gnu::hot, gnu::alloc_size(3), gnu::alloc_align(4), gnu::malloc]]
         #endif
-        inline static void* reallocCallback(
+        inline static VKAPI_ATTR void* reallocCallback(
             void* pUserdata,
             void* pOriginal,
             size_t size,
@@ -114,7 +114,7 @@ namespace Vulkan_Memory {
             }
         }
 
-        inline static void freeCallback(
+        inline static VKAPI_ATTR void freeCallback(
             void* pUserdata,
             void* pMemory
         ) noexcept {

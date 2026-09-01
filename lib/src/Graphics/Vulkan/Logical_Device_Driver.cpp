@@ -6,6 +6,8 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <ranges>
+#include <limits>
 
 #define MAX_HEAP_SIZE 8.0
 
@@ -55,6 +57,28 @@ namespace Djinn_Vulkan {
         return Score;
     }
 
+    VkExtent2D SwapchainManager::getSwapExtent(
+        VkSurfaceCapabilities2KHR const& surfaceCap
+    ) noexcept {
+        if (
+            surfaceCap.surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()
+        ) {
+            return surfaceCap.surfaceCapabilities.currentExtent;
+        }
+
+        int width, height;
+        SDL_GetWindowSizeInPixels(
+            m_window,
+            &width,
+            &height
+        );
+
+        return {
+            std::clamp<uint32_t>(width, surfaceCap.surfaceCapabilities.minImageExtent.width, surfaceCap.surfaceCapabilities.maxImageExtent.width),
+            std::clamp<uint32_t>(height, surfaceCap.surfaceCapabilities.minImageExtent.height, surfaceCap.surfaceCapabilities.maxImageExtent.height)
+        };
+    }
+
     [[nodiscard]] VkResult LogicalDeviceDriver::init_instance() noexcept {
         if ( !m_window.init() ) {
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -84,7 +108,7 @@ namespace Djinn_Vulkan {
             requestedVersion = VK_API_VERSION_1_0;
         }
 
-        m_userAPIVersion = requestedVersion;
+        userAPIVersion = requestedVersion;
 
         const VkApplicationInfo appInfo
         {
@@ -166,7 +190,7 @@ namespace Djinn_Vulkan {
             );
         }
 
-        const auto Index = std::distance(physDeviceScores.begin(), std::max_element(physDeviceScores.begin(), physDeviceScores.end()));
+        const size_t Index = std::distance(physDeviceScores.begin(), std::max_element(physDeviceScores.begin(), physDeviceScores.end()));
 
         try {
             VkPhysicalDevice physDevice = physDevices.at(Index);
@@ -174,7 +198,7 @@ namespace Djinn_Vulkan {
 
             vkGetPhysicalDeviceProperties(physDevice, &deviceProperties);
             
-            m_userAPIVersion = deviceProperties.apiVersion;
+            userAPIVersion = deviceProperties.apiVersion;
             m_physicalDevice = physDevice;
             return true;
         } catch ( const std::out_of_range& except ) {
@@ -251,7 +275,7 @@ namespace Djinn_Vulkan {
             !features1_3.dynamicRendering || !features1_3.synchronization2 ||
             !features1_2.timelineSemaphore
         ) {
-            return false;
+            hasDesiredFeatures = true;
         }
 
         const std::vector<const char*> deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -287,5 +311,276 @@ namespace Djinn_Vulkan {
         return true;
     }
 
-    
+    [[nodiscard]] bool SwapchainManager::init_Swapchain(
+        VkDevice& logicalDevice,
+        VkPhysicalDevice& physDevice,
+        VkSurfaceKHR& surface,
+        const VkAllocationCallbacks* allocator,
+        VmaAllocator& vmaAlloc
+    ) noexcept {
+        VkSurfaceCapabilities2KHR surfaceCap
+        {};
+
+        const VkPhysicalDeviceSurfaceInfo2KHR surfaceInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR,
+            .pNext = nullptr,
+            .surface = surface
+        };
+
+        const VkResult surfaceResult = vkGetPhysicalDeviceSurfaceCapabilities2KHR(
+            physDevice,
+            &surfaceInfo,
+            &surfaceCap
+        );
+
+        if (
+            surfaceResult != VK_SUCCESS
+        ) {
+            return false;
+        }
+
+        uint32_t surfaceFormatCount { 0u };
+
+        vkGetPhysicalDeviceSurfaceFormats2KHR(
+            physDevice,
+            &surfaceInfo,
+            &surfaceFormatCount,
+            nullptr
+        );
+        std::vector<VkSurfaceFormat2KHR> surfaceFormats(surfaceFormatCount, {
+            .sType = VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR
+        });
+        vkGetPhysicalDeviceSurfaceFormats2KHR(
+            physDevice,
+            &surfaceInfo,
+            &surfaceFormatCount,
+            surfaceFormats.data()
+        );
+
+        uint32_t surfacePresentModeCount { 0u };
+
+        vkGetPhysicalDeviceSurfacePresentModesKHR(
+            physDevice,
+            surface,
+            &surfacePresentModeCount,
+            nullptr
+        );
+        std::vector<VkPresentModeKHR> presentModes(surfacePresentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(
+            physDevice,
+            surface,
+            &surfacePresentModeCount,
+            presentModes.data()
+        );
+
+        const std::vector<VkSurfaceFormat2KHR, std::allocator<VkSurfaceFormat2KHR>>::const_iterator Format_It = std::ranges::find_if(
+            surfaceFormats, [](
+                const VkSurfaceFormat2KHR& format
+            ) -> bool {
+                return format.surfaceFormat.format == desiredFormat && format.surfaceFormat.colorSpace == desiredColorSpace;
+            }
+        );
+
+        if (
+            Format_It == surfaceFormats.end()
+        ) {
+            try {
+                m_surfaceFormat = surfaceFormats.at(0);
+            } catch ( const std::out_of_range& err ) {
+                VK_Debug::bad_event("An exception was catched when trying to access surfaceFormat's vector. There was none at position = 0.");
+                return false;
+            }
+        } else {
+            m_surfaceFormat = *Format_It;
+        }
+
+        if (
+            !std::ranges::any_of(
+                presentModes,
+                [](const VkPresentModeKHR& currMode) {
+                    return currMode == VK_PRESENT_MODE_FIFO_KHR;
+                }
+            )
+        ) {
+            return false;
+        }
+
+        const VkPresentModeKHR presentMode = std::ranges::any_of(presentModes,
+        [](const VkPresentModeKHR& currMode){
+            return desiredPresentMode == currMode;
+        }) ? desiredPresentMode : VK_PRESENT_MODE_FIFO_KHR;
+
+        VkExtent2D swapchainExtent = getSwapExtent(
+            surfaceCap
+        );
+
+        uint32_t minImageCount = std::max(3u, surfaceCap.surfaceCapabilities.minImageCount);
+        if ( (0 < surfaceCap.surfaceCapabilities.maxImageCount) && (surfaceCap.surfaceCapabilities.maxImageCount < minImageCount)) {
+            minImageCount = surfaceCap.surfaceCapabilities.maxImageCount;
+        }
+
+        const VkSwapchainCreateInfoKHR swapChainCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+            .surface = surface,
+            .minImageCount = minImageCount,
+            .imageFormat = m_surfaceFormat.surfaceFormat.format,
+            .imageColorSpace = m_surfaceFormat.surfaceFormat.colorSpace,
+            .imageExtent = swapchainExtent,
+            .imageArrayLayers = 1,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .preTransform = surfaceCap.surfaceCapabilities.currentTransform,
+            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+            .presentMode = presentMode,
+            .clipped = true
+        };
+
+        if (
+            vkCreateSwapchainKHR(
+                logicalDevice,
+                &swapChainCreateInfo,
+                allocator,
+                &m_swapChain
+            ) != VK_SUCCESS
+        ) {
+            return false;
+        }
+
+        uint32_t imageCount { 0u };
+        vkGetSwapchainImagesKHR(
+            logicalDevice,
+            m_swapChain,
+            &imageCount,
+            nullptr
+        );
+
+        m_images.resize(imageCount);
+        vkGetSwapchainImagesKHR(
+            logicalDevice,
+            m_swapChain,
+            &imageCount,
+            m_images.data()
+        );
+        m_imageViews.resize(imageCount);
+
+        size_t idx { 0uz };
+        for (
+            VkImage& currImage : m_images
+        ) {
+            const VkImageViewCreateInfo imgViewInfo
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .image = currImage,
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = m_surfaceFormat.surfaceFormat.format,
+                .subresourceRange =
+                {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .levelCount = 1,
+                    .layerCount = 1
+                }
+            };
+
+            if (
+                vkCreateImageView(
+                    logicalDevice,
+                    &imgViewInfo,
+                    allocator,
+                    &m_imageViews[idx]
+                ) != VK_SUCCESS
+            ) {
+                return false;
+            }
+            idx++;
+        }
+
+        renderCompleteSemaphores.resize(m_images.size());
+        for (
+            VkSemaphore& semaphore : renderCompleteSemaphores
+        ) {
+            const VkSemaphoreCreateInfo semCreateInfo
+            {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+            };
+            if (
+                vkCreateSemaphore(
+                    logicalDevice,
+                    &semCreateInfo,
+                    allocator,
+                    &semaphore
+                ) != VK_SUCCESS
+            ) {
+                return false;
+            }
+        }
+
+        const VkImageCreateInfo depthImageCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = depthFormat,
+            .extent
+            {
+                .width = swapchainExtent.width,
+                .height = swapchainExtent.height,
+                .depth = 1
+            },
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+        };
+
+        VmaAllocationCreateInfo allocInfo
+        {
+            .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+            .usage = VMA_MEMORY_USAGE_AUTO
+        };
+
+        if (
+            vmaCreateImage(
+                vmaAlloc,
+                &depthImageCreateInfo,
+                &allocInfo,
+                &m_depthImage,
+                &m_depthImageAllocation,
+                nullptr
+            ) != VK_SUCCESS
+        ) {
+            return false;
+        }
+
+        const VkImageViewCreateInfo depthImgViewCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = m_depthImage,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = depthFormat,
+            .subresourceRange
+            {
+                .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                .levelCount = 1,
+                .layerCount = 1
+            }
+        };
+
+        if (
+            vkCreateImageView(
+                logicalDevice,
+                &depthImgViewCreateInfo,
+                allocator,
+                &m_depthImageView
+            ) != VK_SUCCESS
+        ) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
 }
