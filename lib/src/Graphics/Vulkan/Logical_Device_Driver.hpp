@@ -81,7 +81,7 @@ namespace Djinn_Vulkan {
         [[nodiscard]] bool init_gfxQueue()        noexcept override;
         [[nodiscard]] bool init_logicalDevice()   noexcept override;
         private:
-        VkAllocationCallbacks m_allocCallback
+        const VkAllocationCallbacks m_allocCallback
         {
             .pUserData = nullptr,
             .pfnAllocation = (PFN_vkAllocationFunction)Vulkan_Memory::Heap_Callback::allocCallback,
@@ -127,7 +127,7 @@ namespace Djinn_Vulkan {
             return m_logicalDevice;
         }
 
-        VkAllocationCallbacks* getAllocCallback() noexcept {
+        const VkAllocationCallbacks* getAllocCallback() noexcept {
             return &m_allocCallback;
         }
     };
