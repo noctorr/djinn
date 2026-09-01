@@ -40,7 +40,7 @@ namespace Vulkan_Memory {
         {
             alignment = std::max(alignment, memory_header_alignment);
             const size_t totalSize = memory_header_size + sizeof(void*) + size + alignment;
-            void* memory = ::operator new(totalSize, std::align_val_t(alignment), std::nothrow);
+            void* memory = ::operator new(totalSize, std::align_val_t{alignment}, std::nothrow);
 
             if (
                 !memory
@@ -113,7 +113,7 @@ namespace Vulkan_Memory {
 
                 void* memory = ::operator new(
                     totalSize,
-                    std::align_val_t(alignment),
+                    std::align_val_t{alignment},
                     std::nothrow
                 );
 
@@ -169,7 +169,7 @@ namespace Vulkan_Memory {
             memory_tracker.decrement();
             memory_tracker.sub(memHeader->size);
 
-            ::operator delete(base, std::align_val_t(memHeader->alignment));
+            ::operator delete(base, std::align_val_t{memHeader->alignment});
         }
 
         private:
