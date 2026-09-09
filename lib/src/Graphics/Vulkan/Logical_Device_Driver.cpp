@@ -278,6 +278,10 @@ namespace Djinn_Vulkan {
             hasDesiredFeatures = true;
         }
 
+        featuresData[0] = features1_3.dynamicRendering;
+        featuresData[1] = features1_3.synchronization2;
+        featuresData[2] = features1_2.timelineSemaphore;
+
         const std::vector<const char*> deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
         VkDeviceCreateInfo devCreateInfo
@@ -637,4 +641,68 @@ namespace Djinn_Vulkan {
         }
     }
 
+    [[nodiscard]] bool PipelineManager::init_Pipeline(
+        std::inplace_vector<std::tuple<VkShaderModule*, ShaderType>, 5>& shaderVector
+    ) noexcept {
+        std::inplace_vector<VkPipelineShaderStageCreateInfo, 5> shadersCreateInfo;
+        for ( std::tuple<VkShaderModule*, ShaderType>& element : shaderVector ) {
+            ShaderType shaderType = std::get<1>(element);
+            if (
+                shaderType == ShaderType::Vertex
+            ) {
+                VkPipelineShaderStageCreateInfo shaderPipelineCreateInfo
+                {
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                    .stage = VK_SHADER_STAGE_VERTEX_BIT,
+                    .module = *std::get<0>(element),
+                    .pName = "vertexMain"
+                };
+
+                shadersCreateInfo.push_back(
+                    shaderPipelineCreateInfo
+                );
+            } else if (
+                shaderType == ShaderType::Fragment
+            ) {
+                VkPipelineShaderStageCreateInfo shaderPipelineCreateInfo
+                {
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                    .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+                    .module = *std::get<0>(element),
+                    .pName = "fragMain"
+                };
+
+                shadersCreateInfo.push_back(
+                    shaderPipelineCreateInfo
+                );
+            }
+        }
+
+        const std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+            .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+            .pDynamicStates = dynamicStates.data()
+        };
+
+        VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo
+        {
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        };
+        VkPipelineViewportStateCreateInfo viewportStateCreateInfo
+        {
+            .viewportCount = 1,
+            .scissorCount = 1
+        };
+
+        VkPipelineRasterizationStateCreateInfo rasterizerStateCreateInfo
+        {
+            .depthClampEnable = VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = VK_POLYGON_MODE_FILL,
+            .cullMode = 
+        };
+    }
 }

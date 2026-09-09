@@ -5,16 +5,30 @@
 #include "SDL_Window.hpp"
 
 #include <vector>
+#include <array>
+#include <inplace_vector>
+#include <tuple>
 
 namespace Djinn_Vulkan {
     inline static Vulkan_Memory::Heap_Callback standalone{};
 
+    enum class ShaderType : unsigned char {
+        Vertex,
+        Fragment,
+        Geomery,
+        Tesselation,
+        Compute
+    };
+
     class PipelineManager final
     {
         VkPipeline                 m_gfxPipeline        { VK_NULL_HANDLE };
+        VkPipelineLayout           m_gfxLayout          { VK_NULL_HANDLE };
 
         public:
-
+        [[nodiscard]] bool init_Pipeline(
+            std::inplace_vector<std::tuple<VkShaderModule*, ShaderType>, 5>&
+        ) noexcept;
     };
 
     class SwapchainManager final
@@ -75,6 +89,8 @@ namespace Djinn_Vulkan {
         public:
         uint32_t                   userAPIVersion;
         bool                       hasDesiredFeatures   { false };
+
+        std::array<VkBool32, 3>    featuresData;
 
         [[nodiscard]] VkResult init_instance()    noexcept override;
         [[nodiscard]] bool init_physicalDevice()  noexcept override;

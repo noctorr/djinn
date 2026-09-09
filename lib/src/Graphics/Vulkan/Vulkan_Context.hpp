@@ -14,6 +14,8 @@
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
 
+#include <shaderc/shaderc.hpp>
+
 #if defined(__GNUC__) && !defined(__clang__)
 #define _GPLUSPLUS
 #endif
