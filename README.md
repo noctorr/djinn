@@ -1,18 +1,26 @@
-# **DJINN ENGINE**
+# DJINN ENGINE
 
-<img src=".github/CPP.png" width="400" alt="CPP">
+<img src=".github/CPP.png" width="400" alt="C++">
 <img src=".github/Vulkan.png" width="500" alt="Vulkan">
 
-# Introduction
-Djinn is a Game Engine in **W.I.P** where it trys to be as Begineer-Friendly as possible as a way for people to understand
-game development.
+## Introduction
 
+**Djinn Engine** is a work-in-progress 3D game engine built with the goal of making game development more approachable for beginners.
 
-# Description
-It currently uses it's own High-Level interpreted programming language called **Yannis**. Which the user will use in order to develop games inside of the
-engine.
+The engine is designed to help new developers understand core game-development concepts while providing the tools needed to create their own games.
 
-**Yannis Capabilities**
-- Made to be readable and friendly to begineers
-- Have plenty of features which the developer can utilise
-- Try to be as optimised and fast as possible
+## Description
+
+Djinn Engine features its own high-level interpreted programming language called **Yannis**. Yannis is designed to make game development more accessible by providing a simple and readable way to interact with the engine.
+
+Instead of requiring developers to work directly with the engine's underlying C++ systems, Yannis allows them to create gameplay and develop games using a beginner-friendly scripting language.
+
+### Yannis Features
+
+- Easy to read and beginner-friendly
+- Designed specifically for game development
+- Includes a growing set of useful development features
+- Focused on providing good performance and optimization
+- Allows developers to create gameplay directly within Djinn Engine
+
+> Djinn Engine and Yannis are currently under active development.
