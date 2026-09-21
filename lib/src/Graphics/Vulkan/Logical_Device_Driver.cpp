@@ -3,6 +3,7 @@
 
 #include "Vulkan_Debug.hpp"
 
+#include <execution>
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -172,23 +173,29 @@ namespace Djinn_Vulkan {
         vkEnumeratePhysicalDevices(m_instance, &physDeviceCount, physDevices.data());
 
         std::vector<uint8_t> physDeviceScores(physDeviceCount);
-        for ( const VkPhysicalDevice& physDevice : physDevices ) {
-            VkPhysicalDeviceFeatures         deviceFeatures{};
-            VkPhysicalDeviceProperties       deviceProps{};
-            VkPhysicalDeviceMemoryProperties deviceMemProps{};
+        std::ranges::for_each(
+            physDevices.begin(),
+            physDevices.end(),
+            [](
+                const VkPhysicalDevice& physDevice
+            ) {
+                VkPhysicalDeviceFeatures         deviceFeatures{};
+                VkPhysicalDeviceProperties       deviceProps{};
+                VkPhysicalDeviceMemoryProperties deviceMemProps{};
 
-            vkGetPhysicalDeviceFeatures(physDevice, &deviceFeatures);
-            vkGetPhysicalDeviceProperties(physDevice, &deviceProps);
-            vkGetPhysicalDeviceMemoryProperties(physDevice, &deviceMemProps);
+                vkGetPhysicalDeviceFeatures(physDevice, &deviceFeatures);
+                vkGetPhysicalDeviceProperties(physDevice, &deviceProps);
+                vkGetPhysicalDeviceMemoryProperties(physDevice, &deviceMemProps);
 
-            physDeviceScores.push_back(
-                scoreDeviceCapabilities(
-                    deviceFeatures,
-                    deviceProps,
-                    deviceMemProps
-                )
-            );
-        }
+                physDeviceScores.push_back(
+                    scoreDeviceCapabilities(
+                        deviceFeatures,
+                        deviceProps,
+                        deviceMemProps
+                    )
+                );
+            }
+        );
 
         const size_t Index = std::distance(physDeviceScores.begin(), std::max_element(physDeviceScores.begin(), physDeviceScores.end()));
 
@@ -470,54 +477,74 @@ namespace Djinn_Vulkan {
         m_imageViews.resize(imageCount);
 
         size_t idx { 0uz };
-        for (
-            VkImage& currImage : m_images
-        ) {
-            const VkImageViewCreateInfo imgViewInfo
-            {
-                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                .image = currImage,
-                .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                .format = m_surfaceFormat.surfaceFormat.format,
-                .subresourceRange =
+        const bool imageViewResult = std::ranges::all_of(
+            std::execution::seq,
+            m_images.begin(),
+            m_images.end(),
+            [](
+                VkImage& currImage
+            ) {
+                const VkImageViewCreateInfo imgViewInfo
                 {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .levelCount = 1,
-                    .layerCount = 1
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                    .image = currImage,
+                    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                    .format = m_surfaceFormat.surfaceFormat.format,
+                    .subresourceRange =
+                    {
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .levelCount = 1,
+                        .layerCount = 1
+                    }
+                };
+
+                if (
+                    vkCreateImageView(
+                        logicalDevice,
+                        &imgViewInfo,
+                        allocator,
+                        &m_imageViews[idx]
+                    ) != VK_SUCCESS
+                ) {
+                    return false;
                 }
-            };
-
-            if (
-                vkCreateImageView(
-                    logicalDevice,
-                    &imgViewInfo,
-                    allocator,
-                    &m_imageViews[idx]
-                ) != VK_SUCCESS
-            ) {
-                return false;
+                idx++;
             }
-            idx++;
+        );
+
+        switch ( imageViewResult ) {
+            case 0:
+            return false;
         }
-
+        
         renderCompleteSemaphores.resize(m_images.size());
-        for (
-            VkSemaphore& semaphore : renderCompleteSemaphores
-        ) {
-            const VkSemaphoreCreateInfo semCreateInfo
-            {
-                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-            };
-            if (
-                vkCreateSemaphore(
-                    logicalDevice,
-                    &semCreateInfo,
-                    allocator,
-                    &semaphore
-                ) != VK_SUCCESS
-            ) {
-                return false;
+        const bool renderResult = std::ranges::all_of(
+            renderCompleteSemaphores.begin(),
+            renderCompleteSemaphores.end(),
+            [](VkSemaphore& semaphore){
+                const VkSemaphoreCreateInfo semCreateInfo
+                {
+                    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+                };
+
+                if (
+                    vkCreateSemaphore(
+                        logicalDevice,
+                        &semCreateInfo,
+                        allocator,
+                        &semaphore
+                    ) != VK_SUCCESS
+                ) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
+        );
+
+        switch ( renderResult ) {
+            case 0:
+            return false;
         }
 
         const VkImageCreateInfo depthImageCreateInfo
@@ -645,38 +672,94 @@ namespace Djinn_Vulkan {
         std::inplace_vector<std::tuple<VkShaderModule*, ShaderType>, 5>& shaderVector
     ) noexcept {
         std::inplace_vector<VkPipelineShaderStageCreateInfo, 5> shadersCreateInfo;
-        for ( std::tuple<VkShaderModule*, ShaderType>& element : shaderVector ) {
-            ShaderType shaderType = std::get<1>(element);
-            if (
-                shaderType == ShaderType::Vertex
-            ) {
-                VkPipelineShaderStageCreateInfo shaderPipelineCreateInfo
-                {
-                    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    .stage = VK_SHADER_STAGE_VERTEX_BIT,
-                    .module = *std::get<0>(element),
-                    .pName = "vertexMain"
-                };
 
-                shadersCreateInfo.push_back(
-                    shaderPipelineCreateInfo
-                );
-            } else if (
-                shaderType == ShaderType::Fragment
-            ) {
-                VkPipelineShaderStageCreateInfo shaderPipelineCreateInfo
-                {
-                    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                    .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-                    .module = *std::get<0>(element),
-                    .pName = "fragMain"
-                };
+        std::for_each(
+            std::execution::par_unseq,
+            shaderVector.begin(),
+            shaderVector.end(),
+            [&shadersCreateInfo](
+                std::tuple<VkShaderModule*, ShaderType>& element
+            ) -> void {
+                ShaderType shaderType = std::get<1>(element);
+                if (
+                    shaderType == ShaderType::Vertex
+                ) {
+                    VkPipelineShaderStageCreateInfo shaderPipelineCreateInfo
+                    {
+                        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                        .stage = VK_SHADER_STAGE_VERTEX_BIT,
+                        .module = *std::get<0>(element),
+                        .pName = "vertexMain"
+                    };
 
-                shadersCreateInfo.push_back(
-                    shaderPipelineCreateInfo
-                );
+                    shadersCreateInfo.push_back(
+                        shaderPipelineCreateInfo
+                    );
+                } else if (
+                    ShaderType == ShaderType::Fragment
+                ) {
+                    VkPipelineShaderStageCreateInfo shaderPipelineCreateInfo
+                    {
+                        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+                        .module = *std::get<0>(element),
+                        .pName = "fragMain"
+                    };
+
+                    shaderCreateInfo.push_back(
+                        shaderPipelineCreateInfo
+                    );
+                }
             }
-        }
+        );
+
+        VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        };
+        VkPipelineViewportStateCreateInfo viewportStateCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+            .viewportCount = 1,
+            .scissorCount = 1
+        };
+
+        VkPipelineRasterizationStateCreateInfo rasterizerStateCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+            .depthClampEnable = VK_FALSE,
+            .rasterizerDiscardEnable = VK_FALSE,
+            .polygonMode = VK_POLYGON_MODE_FILL,
+            .cullMode = VK_CULL_MODE_BACK_BIT,
+            .frontFace = VK_FRONT_FACE_CLOCKWISE,
+            .depthBiasEnable = VK_FALSE,
+            .lineWidth = 1.f
+        };
+
+        VkPipelineMultiSampleStateCreateInfo multiSampleStateCreateInfo
+        {
+            .sType = PIPELINE_MULTI_SAMPLE_STATE_CREATE_INFO,
+            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable = VK_FALSE
+        };
+
+        VkPipelineColorBlendAttachmentState colorBlendAttachmentState
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ATTACHMENT_STATE,
+            .blendEnable = VK_FALSE,
+            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+        };
+
+        VkPipelineColorBlendStateCreateInfo colorBlendingStateCreateInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+            .logicOpEnable = VK_FALSE,
+            .logicOp = VK_LOGIC_OP_COPY,
+            .attachmentCount = 1,
+            .pAttachments = &colorBlendAttachmentState
+        };
 
         const std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
         VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo
@@ -686,23 +769,13 @@ namespace Djinn_Vulkan {
             .pDynamicStates = dynamicStates.data()
         };
 
-        VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo
+        VkPipelineLayoutCreateInfo pipelienLayoutCreateInfo
         {
-            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
-        };
-        VkPipelineViewportStateCreateInfo viewportStateCreateInfo
-        {
-            .viewportCount = 1,
-            .scissorCount = 1
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = 0,
+            .pushConstantRangeCOunt = 0
         };
 
-        VkPipelineRasterizationStateCreateInfo rasterizerStateCreateInfo
-        {
-            .depthClampEnable = VK_FALSE,
-            .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = 
-        };
+        
     }
 }

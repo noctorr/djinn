@@ -52,6 +52,7 @@ namespace Djinn_Vulkan {
         VkPresentModeKHR           m_presentMode;
         public:
         std::vector<VkSemaphore>   renderCompleteSemaphores;
+        VkExtent2D swapChainExtent;
         explicit SwapchainManager(
             SDL_Window* window
         ) : m_window(window) {}
