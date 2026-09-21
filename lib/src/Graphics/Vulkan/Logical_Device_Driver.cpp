@@ -176,9 +176,9 @@ namespace Djinn_Vulkan {
         std::ranges::for_each(
             physDevices.begin(),
             physDevices.end(),
-            [](
+            [this](
                 const VkPhysicalDevice& physDevice
-            ) {
+            ) -> void {
                 VkPhysicalDeviceFeatures         deviceFeatures{};
                 VkPhysicalDeviceProperties       deviceProps{};
                 VkPhysicalDeviceMemoryProperties deviceMemProps{};
@@ -409,7 +409,9 @@ namespace Djinn_Vulkan {
         if (
             !std::ranges::any_of(
                 presentModes,
-                [](const VkPresentModeKHR& currMode) {
+                [](
+                    const VkPresentModeKHR& currMode
+                ) -> bool {
                     return currMode == VK_PRESENT_MODE_FIFO_KHR;
                 }
             )
@@ -418,7 +420,9 @@ namespace Djinn_Vulkan {
         }
 
         const VkPresentModeKHR presentMode = std::ranges::any_of(presentModes,
-        [](const VkPresentModeKHR& currMode){
+        [](
+            const VkPresentModeKHR& currMode
+        ) -> bool {
             return desiredPresentMode == currMode;
         }) ? desiredPresentMode : VK_PRESENT_MODE_FIFO_KHR;
 
@@ -481,9 +485,9 @@ namespace Djinn_Vulkan {
             std::execution::seq,
             m_images.begin(),
             m_images.end(),
-            [](
+            [] (
                 VkImage& currImage
-            ) {
+            ) -> bool {
                 const VkImageViewCreateInfo imgViewInfo
                 {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -521,7 +525,9 @@ namespace Djinn_Vulkan {
         const bool renderResult = std::ranges::all_of(
             renderCompleteSemaphores.begin(),
             renderCompleteSemaphores.end(),
-            [](VkSemaphore& semaphore){
+            [] (
+                VkSemaphore& semaphore
+            ) -> bool {
                 const VkSemaphoreCreateInfo semCreateInfo
                 {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
