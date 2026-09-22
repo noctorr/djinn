@@ -482,7 +482,6 @@ namespace Djinn_Vulkan {
 
         size_t idx { 0uz };
         const bool imageViewResult = std::ranges::all_of(
-            std::execution::seq,
             m_images.begin(),
             m_images.end(),
             [] (
